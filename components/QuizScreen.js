@@ -4,13 +4,13 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import VictoryScreen from './VictoryScreen';
+import Loading from './Loading'; // Import the custom Loading component
 
 // Polyfill para Buffer
 if (typeof global.Buffer === 'undefined') {
@@ -159,7 +159,7 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
     fetchRandomAtividade();
   }, []);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+  if (loading) return <Loading isDarkMode={isDarkMode} />; // Use the custom Loading component
   if (error) return <Text style={styles.error}>{error}</Text>;
 
   return (
@@ -377,8 +377,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 150,
     marginBottom: 25,
-    borderRadius: 15,
-    backgroundColor: '#f0f0f0',
+    resizeMode: 'cover',
+    backgroundColor: '#ffffff',
   },
   questionText: {
     fontSize: 24,
@@ -438,6 +438,12 @@ const styles = StyleSheet.create({
   wrongOptionText: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  darkText: {
+    color: '#ECEFF1',
+  },
+  lightText: {
+    color: '#212121',
   },
   error: {
     color: 'red',

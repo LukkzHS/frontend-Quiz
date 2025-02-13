@@ -57,15 +57,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginVertical: 30,
   },
-questionImage: {
-  width: 150,
-  height: 150,
-  marginBottom: 25,
-  borderRadius: 15,
-  borderWidth: 3,
-  borderColor: '#E9ECEF',
-  backgroundColor: isDarkMode ? '#37474F' : '#E0E0E0', 
-},
+  questionImage: {
+    width: '100%',
+    height: 150,
+    marginBottom: 25,
+    resizeMode: 'contain', // Alterado para 'contain' para evitar bordas brancas
+    backgroundColor: isDarkMode ? '#37474F' : '#E0E0E0', // Cor de fundo condicional
+  },
   questionText: {
     fontSize: 24,
     fontWeight: '600',

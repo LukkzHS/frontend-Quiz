@@ -9,14 +9,14 @@ const HomeScreen = ({ onStart, isDarkMode, toggleDarkMode }) => {
         onPress={toggleDarkMode}
       >
         {isDarkMode ? (
-          <Text style={styles.themeText}>🌞 Light</Text>
+          <Text style={styles.themeText}>🌞 Claro</Text>
         ) : (
-          <Text style={styles.themeText}>🌙 Dark</Text>
+          <Text style={styles.themeText}>🌙 Escuro</Text>
         )}
       </TouchableOpacity>
 
       <Image
-        source={require('../assets/images/quiz-logo.png')}
+        source={require('../assets/images/quizColegioIntegracaoBabyLogo.png')}
         style={styles.banner}
       />
       

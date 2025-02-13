@@ -26,7 +26,7 @@ const LoginScreen = ({ onLogin, isDarkMode, toggleDarkMode }) => {
       </TouchableOpacity>
 
       <Image
-        source={require('../assets/images/quiz-logo.png')}
+        source={require('../assets/images/logoColegioIntegracaoBaby.png')}
         style={styles.logo}
       />
       
