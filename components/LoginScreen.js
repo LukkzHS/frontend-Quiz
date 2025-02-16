@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { 
   View, 
   Text, 
@@ -12,10 +12,13 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import ThemeToggleButton from './ThemeToggleButton';
+import ThemeContext from '../contexts/ThemeContext';
 
 const FIREBASE_API_KEY = "AIzaSyC3yWPHNOZ17LrRx68G7oMY0FPty9aIwqo";
 
-const LoginScreen = ({ isDarkMode, toggleDarkMode }) => {
+const LoginScreen = () => {
+  const { isDarkMode } = useContext(ThemeContext);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
@@ -85,13 +88,7 @@ const LoginScreen = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      <TouchableOpacity style={styles.themeToggle} onPress={toggleDarkMode}>
-        {isDarkMode ? (
-          <Text style={styles.themeText}>🌞 Claro</Text>
-        ) : (
-          <Text style={styles.themeText}>🌙 Escuro</Text>
-        )}
-      </TouchableOpacity>
+      <ThemeToggleButton />
 
       <Image
         source={require('../assets/images/logoColegioIntegracaoBaby.png')}
@@ -111,6 +108,7 @@ const LoginScreen = ({ isDarkMode, toggleDarkMode }) => {
           autoCapitalize="none"
           keyboardType="email-address"
           onChangeText={setEmail}
+          textAlign="center" // Centraliza o placeholder
         />
       </View>
 
@@ -123,6 +121,7 @@ const LoginScreen = ({ isDarkMode, toggleDarkMode }) => {
           placeholderTextColor={isDarkMode ? '#B0BEC5' : '#9E9E9E'}
           autoCapitalize="none"
           onChangeText={setSenha}
+          textAlign="center" // Centraliza o placeholder
         />
       </View>
 
@@ -135,10 +134,6 @@ const LoginScreen = ({ isDarkMode, toggleDarkMode }) => {
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
       )}
-
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.buttonText}>Voltar</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -168,18 +163,24 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     width: '90%',
+    paddingHorizontal: 10,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    paddingHorizontal: 10,
-    marginBottom: 12,
     backgroundColor: '#fff',
     elevation: 3,
   },
   input: {
     height: 50,
-    width: '100%',
     fontSize: 16,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+    color: '#333',
+    textAlign: 'center',
   },
   darkInput: {
     backgroundColor: '#263238',
@@ -194,15 +195,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
-  },
-  backButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
   },
   buttonText: {
     color: '#FFF',
