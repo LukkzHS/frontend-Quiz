@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Image, 
+  ActivityIndicator, 
+  Alert 
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
-const LoginScreen = ({ onLogin, isDarkMode, toggleDarkMode }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const FIREBASE_API_KEY = "AIzaSyC3yWPHNOZ17LrRx68G7oMY0FPty9aIwqo";
+
+const LoginScreen = ({ isDarkMode, toggleDarkMode }) => {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
+    if (!email.trim() || !senha.trim()) {
       setError('Preencha todos os campos');
       return;
     }
@@ -21,114 +32,117 @@ const LoginScreen = ({ onLogin, isDarkMode, toggleDarkMode }) => {
     setError('');
 
     try {
-      // 1. Autenticação no backend
-      const authResponse = await axios.post(
-        'http://192.168.3.8:8080/api/auth/login',
+      // 🔹 Login no Firebase via API REST
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
         {
-          username,
-          password
-        },
-        {
-          headers: { 'Content-Type': 'application/json' }
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            password: senha,
+            returnSecureToken: true,
+          }),
         }
       );
 
-      // 2. Validação do token
-      const validateResponse = await axios.get(
-        'http://192.168.3.8:8080/api/auth/validate',
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Erro ao fazer login.');
+      }
+
+      // 🔹 Obtém o token JWT retornado pelo Firebase
+      const token = data.idToken;
+
+      // 🔹 Envia o token para o backend para validação
+      const backendResponse = await axios.post(
+        "http://192.168.3.8:8080/api/auth/validate", // Verifique se este URL está correto
+        {},
         {
-          headers: { 
-            Authorization: `Bearer ${authResponse.data.token}` 
-          }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // 3. Armazenamento seguro dos dados
-      await AsyncStorage.multiSet([
-        ['userToken', authResponse.data.token],
-        ['userData', JSON.stringify(validateResponse.data)],
-      ]);
-
-      // 4. Navegação para a tela principal
-      navigation.navigate('Home');
-      
-    } catch (error) {
-      handleErrors(error);
+      if (backendResponse.status === 200) {
+        Alert.alert("Sucesso", "Login realizado com sucesso!");
+        // Armazena o token e os dados do usuário no AsyncStorage, se necessário
+        await AsyncStorage.multiSet([
+          ['userToken', token],
+          ['userData', JSON.stringify(backendResponse.data)],
+        ]);
+        navigation.navigate('Home');
+      } else {
+        setError("Erro ao autenticar no backend.");
+      }
+    } catch (err) {
+      setError(err.message || "Falha ao conectar com o servidor.");
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleErrors = (error) => {
-    if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          setError('Credenciais inválidas');
-          break;
-        case 500:
-          setError('Problema no servidor');
-          break;
-        default:
-          setError('Erro inesperado');
-      }
-    } else {
-      setError('Sem conexão com o servidor');
-    }
-    Alert.alert('Erro', error.message || 'Falha na autenticação');
-  };
-
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       <TouchableOpacity style={styles.themeToggle} onPress={toggleDarkMode}>
-        <Text style={styles.themeText}>
-          {isDarkMode ? '🌞 Claro' : '🌙 Escuro'}
-        </Text>
+        {isDarkMode ? (
+          <Text style={styles.themeText}>🌞 Claro</Text>
+        ) : (
+          <Text style={styles.themeText}>🌙 Escuro</Text>
+        )}
       </TouchableOpacity>
 
       <Image
         source={require('../assets/images/logoColegioIntegracaoBaby.png')}
         style={styles.logo}
-        resizeMode="contain"
       />
 
       <Text style={[styles.title, isDarkMode && styles.darkText]}>
-        Bem-vindo ao QuizApp
+        🎒 Login do Aluno
       </Text>
 
-      <TextInput
-        style={[styles.input, isDarkMode && styles.darkInput]}
-        placeholder="Usuário"
-        placeholderTextColor={isDarkMode ? '#B0BEC5' : '#9E9E9E'}
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
+      <View style={styles.inputGroup}>
+        <TextInput
+          value={email}
+          style={[styles.input, isDarkMode && styles.darkInput]}
+          placeholder="Digite seu email"
+          placeholderTextColor={isDarkMode ? '#B0BEC5' : '#9E9E9E'}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setEmail}
+        />
+      </View>
 
-      <TextInput
-        style={[styles.input, isDarkMode && styles.darkInput]}
-        placeholder="Senha"
-        placeholderTextColor={isDarkMode ? '#B0BEC5' : '#9E9E9E'}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={styles.inputGroup}>
+        <TextInput
+          secureTextEntry
+          value={senha}
+          style={[styles.input, isDarkMode && styles.darkInput]}
+          placeholder="Digite sua senha"
+          placeholderTextColor={isDarkMode ? '#B0BEC5' : '#9E9E9E'}
+          autoCapitalize="none"
+          onChangeText={setSenha}
+        />
+      </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={handleLogin}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#4ECDC4" />
+      ) : (
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
-        )}
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.buttonText}>Voltar</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
