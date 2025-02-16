@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
   progressContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginVertical: 25,
+    marginVertical: 15, // Diminuído de 25 para 15
     flexWrap: 'wrap',
   },
   progressDot: {

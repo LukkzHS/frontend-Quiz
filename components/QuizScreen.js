@@ -1,23 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
-  StyleSheet,
   Text,
   TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator
 } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
+import FastImage from 'react-native-fast-image';
 import axios from 'axios';
 import { Buffer } from 'buffer';
+import { useNavigation } from '@react-navigation/native';
+import ThemeToggleButton from './ThemeToggleButton';
+import ThemeContext from '../contexts/ThemeContext';
 import VictoryScreen from './VictoryScreen';
-import Loading from './Loading'; // Import the custom Loading component
 
 // Polyfill para Buffer
 if (typeof global.Buffer === 'undefined') {
   global.Buffer = Buffer;
 }
 
-const QuizScreen = ({ onGoToStart, isDarkMode }) => {
+const QuizScreen = () => {
+  const { isDarkMode } = useContext(ThemeContext);
+  const navigation = useNavigation();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
@@ -53,11 +58,11 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
   const fetchRandomAtividade = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://192.168.3.8:8080/api/atividades');
+      const response = await axios.get('http://192.168.3.8:8082/api/atividades');
       const atividades = response.data;
       const randomAtividade = atividades[Math.floor(Math.random() * atividades.length)];
       const atividadeResponse = await axios.get(
-        `http://192.168.3.8:8080/api/atividades/${randomAtividade.id}`
+        `http://192.168.3.8:8082/api/atividades/${randomAtividade.id}`
       );
       
       const questoes = await Promise.all(
@@ -66,7 +71,7 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
           if (questao.imagemId) {
             try {
               const response = await axios.get(
-                `http://192.168.3.8:8080/api/images/${questao.imagemId}`,
+                `http://192.168.3.8:8082/api/images/${questao.imagemId}`,
                 { responseType: 'arraybuffer' }
               );
               
@@ -135,7 +140,7 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
   };
 
   const resetQuiz = () => {
-    onGoToStart();
+    navigation.navigate('Home');
     setCurrentQuestion(0);
     setScore(0);
     setShowScore(false);
@@ -159,11 +164,22 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
     fetchRandomAtividade();
   }, []);
 
-  if (loading) return <Loading isDarkMode={isDarkMode} />; // Use the custom Loading component
-  if (error) return <Text style={styles.error}>{error}</Text>;
+  if (loading) return (
+    <View style={[styles.loadingContainer, isDarkMode && styles.darkContainer]}>
+      <ActivityIndicator size="large" color="#2E7D32" />
+    </View>
+  );
+  
+  if (error) return (
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+      <Text style={[styles.error, isDarkMode && styles.darkText]}>{error}</Text>
+    </View>
+  );
 
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+      <ThemeToggleButton />
+
       {!showScore && (
         <>
           <View style={styles.headerRow}>
@@ -187,20 +203,16 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
                 goToNextQuestion();
               }}>
               {({ remainingTime }) => (
-                <Text
-                  style={
-                    isDarkMode ? styles.timerTextDark : styles.timerTextLight
-                  }>
+                <Text style={isDarkMode ? styles.timerTextDark : styles.timerTextLight}>
                   {remainingTime}s
                 </Text>
               )}
             </CountdownCircleTimer>
 
-            <Text
-              style={[
-                styles.questionCount,
-                isDarkMode ? styles.darkText : styles.lightText,
-              ]}>
+            <Text style={[
+              styles.questionCount,
+              isDarkMode ? styles.darkText : styles.lightText
+            ]}>
               Pergunta {currentQuestion + 1}/{processedQuestions.length}
             </Text>
           </View>
@@ -236,11 +248,10 @@ const QuizScreen = ({ onGoToStart, isDarkMode }) => {
               />
             )}
 
-            <Text
-              style={[
-                styles.questionText,
-                isDarkMode ? styles.darkText : styles.lightText,
-              ]}>
+            <Text style={[
+              styles.questionText,
+              isDarkMode ? styles.darkText : styles.lightText
+            ]}>
               {processedQuestions[currentQuestion]?.question}
             </Text>
 
@@ -317,8 +328,10 @@ const styles = StyleSheet.create({
   darkContainer: {
     backgroundColor: '#1A1A1A',
   },
-  lightContainer: {
-    backgroundColor: '#F8F9FA',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerRow: {
     flexDirection: 'row',

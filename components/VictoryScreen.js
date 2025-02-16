@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 20,
     margin: 20,
+    marginTop: 50, // Adicione esta linha para abaixar a caixa do resultado
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 20,

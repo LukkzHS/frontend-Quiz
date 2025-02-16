@@ -1,32 +1,64 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import ThemeToggleButton from './ThemeToggleButton';
+import ThemeContext from '../contexts/ThemeContext';
 
-const HomeScreen = ({ onStart, isDarkMode, toggleDarkMode }) => {
+const HomeScreen = () => {
+  const { isDarkMode } = useContext(ThemeContext);
+  const navigation = useNavigation();
+  const [turma, setTurma] = useState({ nome: '', serie: '' });
+  const [aluno, setAluno] = useState({ nome: '', id: '' });
+
+  useEffect(() => {
+    const fetchAlunoData = async () => {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const alunoData = JSON.parse(userData);
+        setAluno(alunoData);
+      }
+    };
+
+    fetchAlunoData();
+  }, []);
+
+  useEffect(() => {
+    const fetchTurma = async () => {
+      if (aluno.id) {
+        try {
+          const response = await axios.get(`http://192.168.3.8:8083/api/turmas/aluno/${aluno.id}`);
+          if (response.data.length > 0) {
+            setTurma(response.data[0]);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados da turma:', error);
+        }
+      }
+    };
+
+    fetchTurma();
+  }, [aluno.id]);
+
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      <TouchableOpacity 
-        style={styles.themeToggle}
-        onPress={toggleDarkMode}
-      >
-        {isDarkMode ? (
-          <Text style={styles.themeText}>🌞 Claro</Text>
-        ) : (
-          <Text style={styles.themeText}>🌙 Escuro</Text>
-        )}
-      </TouchableOpacity>
+      <ThemeToggleButton />
 
       <Image
         source={require('../assets/images/quizColegioIntegracaoBabyLogo.png')}
-        style={styles.banner}
+        style={styles.logo}
       />
-      
-      <Text style={[styles.welcomeText, isDarkMode && styles.darkText]}>
-        Bem-vindo ao Quiz!
+
+      <Text style={[styles.title, isDarkMode && styles.darkText]}>
+        Bem-vindo, {aluno.nome}!
       </Text>
-      
+      <Text style={[styles.subtitle, isDarkMode && styles.darkText]}>
+        Turma: {turma.nome} - Série: {turma.serie}
+      </Text>
       <TouchableOpacity
-        style={styles.quizButton}
-        onPress={onStart}
+        style={styles.button}
+        onPress={() => navigation.navigate('Quiz')}
       >
         <Text style={styles.buttonText}>Iniciar Quiz</Text>
       </TouchableOpacity>
@@ -39,51 +71,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F8F9FA',
   },
   darkContainer: {
     backgroundColor: '#121212',
   },
-  banner: {
-    width: '100%',
+  logo: {
+    width: 200,
     height: 200,
-    resizeMode: 'contain',
-    marginBottom: 40,
+    marginBottom: 20,
   },
-  welcomeText: {
+  title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#2E7D32',
-    textAlign: 'center',
+    marginBottom: 20,
   },
-  quizButton: {
-    width: '80%',
-    height: 60,
+  subtitle: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  darkText: {
+    color: '#FFF',
+  },
+  button: {
     backgroundColor: '#2E7D32',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 3,
+    padding: 15,
+    borderRadius: 10,
   },
   buttonText: {
     color: '#FFF',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  themeToggle: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    padding: 10,
-  },
-  themeText: {
-    fontSize: 16,
-    color: '#2E7D32',
-  },
-  darkText: {
-    color: '#ECEFF1',
+    fontSize: 18,
   },
 });
 

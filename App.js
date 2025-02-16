@@ -1,50 +1,48 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import ThemeContext from './contexts/ThemeContext';
 import LoginScreen from './components/LoginScreen';
 import HomeScreen from './components/HomeScreen';
 import QuizScreen from './components/QuizScreen';
 
+const Stack = createStackNavigator();
+
 const App = () => {
-  const [currentScreen, setCurrentScreen] = useState('login');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  const toggleTheme = () => setIsDarkMode(prev => !prev);
 
   return (
-    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      {currentScreen === 'login' && (
-        <LoginScreen 
-          onLogin={() => setCurrentScreen('home')}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-        />
-      )}
-
-      {currentScreen === 'home' && (
-        <HomeScreen 
-          onStart={() => setCurrentScreen('quiz')}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-        />
-      )}
-
-      {currentScreen === 'quiz' && (
-        <QuizScreen 
-          onGoToStart={() => setCurrentScreen('home')}
-          isDarkMode={isDarkMode}
-        />
-      )}
-    </View>
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: isDarkMode ? '#121212' : '#F8F9FA',
+            },
+            headerTintColor: isDarkMode ? '#FFF' : '#000',
+          }}>
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Quiz"
+            component={QuizScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeContext.Provider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  darkContainer: {
-    backgroundColor: '#121212',
-  },
-});
 
 export default App;

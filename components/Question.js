@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   questionImage: {
     width: '100%',
     height: 150,
-    marginBottom: 25,
+    marginBottom: 10,
     resizeMode: 'contain', // Alterado para 'contain' para evitar bordas brancas
     backgroundColor: isDarkMode ? '#37474F' : '#E0E0E0', // Cor de fundo condicional
   },
